@@ -46,8 +46,48 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
     setError('')
     setStep('pago')
 
-    // Aquí se integra la API de Culqui (checkout / token + cargo en backend).
-    // Se simula el flujo de pago mientras se conecta el backend real.
+    // ── Culqui: Integración (COMENTADO - activar cuando se tengan los tokens) ──
+    // Para activar, descomentar el bloque de abajo y comentar el setTimeout
+    //
+    // try {
+    //   const culqi = new window.Culqi(process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY || 'pk_test_...')
+    //   culqi.openCheckout({
+    //     amount: Number(monto) * 100,
+    //     currency: 'PEN',
+    //     title: 'Donación Freestyle Católico',
+    //     description: `Donación de S/ ${monto}`,
+    //     onToken: async (token) => {
+    //       setProcesando(true)
+    //       try {
+    //         const res = await fetch('/api/pago', {
+    //           method: 'POST',
+    //           headers: { 'Content-Type': 'application/json' },
+    //           body: JSON.stringify({ token: token.id, amount: Number(monto) * 100 })
+    //         })
+    //         const data = await res.json()
+    //         if (data.ok) {
+    //           setProcesando(false)
+    //           setStep('datos')
+    //         } else {
+    //           setError('Error al procesar el pago. Intenta de nuevo.')
+    //           setProcesando(false)
+    //           setStep('monto')
+    //         }
+    //       } catch {
+    //         setError('Error de conexión con el servidor de pagos.')
+    //         setProcesando(false)
+    //         setStep('monto')
+    //       }
+    //     },
+    //     onClose: () => {
+    //       setStep('monto')
+    //     }
+    //   })
+    // } catch {
+    //   setError('Error al inicializar Culqui.')
+    // }
+
+    // SIMULACIÓN: Se mantiene mientras no se tengan los tokens de Culqui
     setProcesando(true)
     setTimeout(() => {
       setProcesando(false)
