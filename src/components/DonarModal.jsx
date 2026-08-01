@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Heart, CheckCircle2 } from 'lucide-react'
 import { normalizeFullName } from '../utils/normalizeName'
-
-const MONTO_MINIMO = 15
+import useConfigFrate, { API_BASE } from '../hooks/useConfigFrate'
 
 // Los pasos: monto -> pago (Culqui) -> datos (anónimo o no) -> confirmación
 export default function DonarModal({ open, onClose, onDonacionCompletada }) {
+  const { config } = useConfigFrate()
   const [step, setStep] = useState('monto')
   const [monto, setMonto] = useState('')
   const [error, setError] = useState('')
@@ -39,8 +39,8 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
       setError('Ingresa un monto válido.')
       return
     }
-    if (valor < MONTO_MINIMO) {
-      setError(`El monto mínimo para donar es S/ ${MONTO_MINIMO}.`)
+    if (valor < config.monto_minimo) {
+      setError(`El monto mínimo para donar es S/ ${config.monto_minimo}.`)
       return
     }
     setError('')
@@ -59,7 +59,7 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
     //     onToken: async (token) => {
     //       setProcesando(true)
     //       try {
-    //         const res = await fetch('/api/pago', {
+    //         const res = await fetch(`${API_BASE}/api/pago`, {
     //           method: 'POST',
     //           headers: { 'Content-Type': 'application/json' },
     //           body: JSON.stringify({ token: token.id, amount: Number(monto) * 100 })
@@ -116,7 +116,7 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
         }
 
     try {
-      const res = await fetch('/api/donaciones', {
+      const res = await fetch(`${API_BASE}/api/donaciones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,14 +125,13 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
           monto: donante.monto,
           anonimo: donante.anonimo,
           fuente: 'freestyle-catolico',
-          fee: 0,
         }),
       })
 
       const data = await res.json()
 
       if (!data.ok) {
-        setError('Hubo un error al registrar tu donación. Intenta de nuevo.')
+        setError(data.error || 'Hubo un error al registrar tu donación. Intenta de nuevo.')
         setProcesando(false)
         return
       }
@@ -146,6 +145,13 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
     onDonacionCompletada?.(donante)
     setStep('exito')
   }
+
+  const montosRapidos = [
+    config.monto_minimo,
+    config.monto_minimo + 10,
+    config.monto_minimo + 35,
+    config.monto_minimo + 85,
+  ]
 
   return (
     <AnimatePresence>
@@ -182,7 +188,7 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
                   Elige el monto de tu donación
                 </h3>
                 <p className="mt-2 font-body text-[13px] text-parchment/55">
-                  Monto mínimo S/ {MONTO_MINIMO}
+                  Monto mínimo S/ {config.monto_minimo}
                 </p>
 
                 <label className="mt-5 block font-label text-[12px] font-semibold text-parchment/70">
@@ -190,16 +196,16 @@ export default function DonarModal({ open, onClose, onDonacionCompletada }) {
                 </label>
                 <input
                   type="number"
-                  min={MONTO_MINIMO}
+                  min={config.monto_minimo}
                   step="1"
                   value={monto}
                   onChange={(e) => setMonto(e.target.value)}
-                  placeholder="15"
+                  placeholder={String(config.monto_minimo)}
                   className="mt-1.5 w-full rounded-lg border border-gold/25 bg-ink-deep px-4 py-3 font-body text-parchment outline-none focus:border-gold"
                 />
 
                 <div className="mt-3 flex gap-2">
-                  {[15, 25, 50, 100].map((m) => (
+                  {montosRapidos.map((m) => (
                     <button
                       type="button"
                       key={m}
